@@ -276,7 +276,10 @@
 		position: fixed;
 		inset: 0;
 		overflow: hidden;
-		background: #7ec86a;
+		background-image: url('/images/scene/grass.jpg');
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
 	}
 
 	.scene {
@@ -342,11 +345,60 @@
 		overflow: hidden;
 	}
 
-	.window-overlay--postcards   { background: #EFE6BB; }
-	.window-overlay--art         { border: 20px solid #c4b5fd; }
-	.window-overlay--projects    { border: 20px solid #f97316; }
-	.window-overlay--writing     { border: 20px solid #f87171; }
-	.window-overlay--photography { border: 20px solid #bfdbfe; }
+	.window-overlay--postcards   {
+		background-image: url('/images/frames/postcardbackground.jpg');
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+	}
+	.window-overlay--art         { border: none; }
+	.window-overlay--art::after {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background-image: url('/images/frames/ipadframe.png');
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+		pointer-events: none;
+		z-index: 10;
+	}
+	.window-overlay--art .overlay-content { padding: 2vh 6vw 6vh; }
+	.window-overlay--projects    { border: none; }
+	.window-overlay--projects .overlay-content { padding: 4vh 6vw 6vh; }
+	.window-overlay--projects::after {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background-image: url('/images/frames/computerframe.png');
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+		pointer-events: none;
+		z-index: 10;
+	}
+	.window-overlay--writing     { border: none; }
+	.window-overlay--writing::after {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background-image: url('/images/frames/notebookframe.png');
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+		pointer-events: none;
+		z-index: 10;
+	}
+	.window-overlay--writing .overlay-content { padding: 2vh 6vw 6vh; }
+	.window-overlay--photography { border: none; }
+	.window-overlay--photography::after {
+		content: '';
+		position: fixed;
+		inset: 0;
+		background-image: url('/images/frames/cameraframe.png');
+		background-size: 100% 100%;
+		background-repeat: no-repeat;
+		pointer-events: none;
+		z-index: 10;
+	}
+	.window-overlay--photography .overlay-content { padding: 2vh 6vw 6vh; }
 
 	.overlay-content {
 		position: absolute;
