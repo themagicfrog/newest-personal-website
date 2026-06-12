@@ -4,7 +4,16 @@
 	let { project, onBack }: { project: Project; onBack: () => void } = $props();
 
 	let lightbox = $state(false);
+	let contentEl = $state<HTMLElement>();
+
+	function onKeydown(e: KeyboardEvent) {
+		if (lightbox) return;
+		if (e.key === 'ArrowDown') { contentEl?.scrollBy({ top: 200, behavior: 'smooth' }); e.preventDefault(); }
+		else if (e.key === 'ArrowUp') { contentEl?.scrollBy({ top: -200, behavior: 'smooth' }); e.preventDefault(); }
+	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <div class="viewer">
 	<div class="topbar">
@@ -12,7 +21,7 @@
 		<span class="date">{project.date}</span>
 	</div>
 
-	<div class="content">
+	<div class="content" bind:this={contentEl}>
 		<div class="header">
 			<h2 class="title">{project.title}</h2>
 			<p class="tagline">{project.tagline}</p>

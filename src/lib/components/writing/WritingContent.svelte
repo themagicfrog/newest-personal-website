@@ -3,6 +3,14 @@
 
 	const { onclose }: { onclose: () => void } = $props();
 
+	let scrollEl = $state<HTMLElement>();
+
+	function onKeydown(e: KeyboardEvent) {
+		if (!scrollEl) return;
+		if (e.key === 'ArrowLeft') { scrollEl.scrollBy({ left: -400, behavior: 'smooth' }); e.preventDefault(); }
+		else if (e.key === 'ArrowRight') { scrollEl.scrollBy({ left: 400, behavior: 'smooth' }); e.preventDefault(); }
+	}
+
 	function hscroll(el: HTMLElement) {
 		function onwheel(e: WheelEvent) {
 			if (!el.contains(e.target as Node)) return;
@@ -17,9 +25,11 @@
 	}
 </script>
 
-<div class="writing-scroll" use:hscroll>
+<svelte:window onkeydown={onKeydown} />
+
+<div class="writing-scroll" use:hscroll bind:this={scrollEl}>
+	<button class="back-btn" onclick={onclose}>back</button>
 	<div class="panel intro-panel">
-		<button class="back-btn" onclick={onclose}>back</button>
 		<div class="intro-text">
 			<h1>writing</h1>
 			<p>I enjoy writing short stories, especially sci-fi and mystery.</p>
@@ -67,13 +77,15 @@
 	}
 
 	.back-btn {
+		position: fixed;
+		top: 1.5rem;
+		left: 1.5rem;
+		z-index: 10;
 		background: none;
 		border: 1px solid black;
 		padding: 0.3rem 0.8rem;
 		cursor: pointer;
 		font-size: 0.85rem;
-		align-self: flex-start;
-		margin-bottom: 1rem;
 	}
 
 	.back-btn:hover {

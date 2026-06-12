@@ -6,13 +6,21 @@
 	let { onProjectOpen }: { onProjectOpen: (open: boolean) => void } = $props();
 
 	let selected = $state<Project | null>(null);
+	let galleryEl = $state<HTMLElement>();
+
+	function onKeydown(e: KeyboardEvent) {
+		if (selected) return;
+		if (e.key === 'ArrowDown') { galleryEl?.scrollBy({ top: 200, behavior: 'smooth' }); e.preventDefault(); }
+		else if (e.key === 'ArrowUp') { galleryEl?.scrollBy({ top: -200, behavior: 'smooth' }); e.preventDefault(); }
+	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 {#if selected}
 	<ProjectViewer project={selected} onBack={() => { selected = null; onProjectOpen(false); }} />
 {:else}
-	<div class="gallery">
-		<h2 class="gallery-heading">projects</h2>
+	<div class="gallery" bind:this={galleryEl}>
 		<div class="grid">
 			{#each projects as project}
 				<button class="project-btn" onclick={() => { selected = project; onProjectOpen(true); }}>
@@ -39,14 +47,6 @@
 		gap: 0.75rem;
 		height: 100%;
 		overflow-y: auto;
-	}
-
-	.gallery-heading {
-		font-size: 1rem;
-		margin: 0;
-		border-bottom: 1px solid black;
-		padding-bottom: 0.4rem;
-		flex-shrink: 0;
 	}
 
 	.grid {

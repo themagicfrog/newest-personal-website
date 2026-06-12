@@ -3,8 +3,21 @@
 
 	let { artwork, onBack }: { artwork: Artwork; onBack: () => void } = $props();
 
-	let lightbox = $state<string | null>(null);
+	let lightboxIndex = $state<number | null>(null);
+	let contentEl = $state<HTMLElement>();
+
+	function onKeydown(e: KeyboardEvent) {
+		if (lightboxIndex !== null) {
+			if (e.key === 'ArrowLeft' && lightboxIndex > 0) { lightboxIndex--; e.preventDefault(); }
+			else if (e.key === 'ArrowRight' && lightboxIndex < artwork.photos.length - 1) { lightboxIndex++; e.preventDefault(); }
+		} else {
+			if (e.key === 'ArrowDown') { contentEl?.scrollBy({ top: 200, behavior: 'smooth' }); e.preventDefault(); }
+			else if (e.key === 'ArrowUp') { contentEl?.scrollBy({ top: -200, behavior: 'smooth' }); e.preventDefault(); }
+		}
+	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <div class="viewer">
 	<div class="topbar">
@@ -13,17 +26,17 @@
 		{#if artwork.date}<span class="date">{artwork.date}</span>{/if}
 	</div>
 
-	<div class="content">
+	<div class="content" bind:this={contentEl}>
 		{#if artwork.description}
-			<p class="description">{artwork.description}</p>
+			<p class="description">{@html artwork.description}</p>
 		{/if}
 		{#if artwork.link}
 			<a href={artwork.link} target="_blank" rel="noopener" class="work-link">view full work →</a>
 		{/if}
 
 		<div class="photo-grid">
-			{#each artwork.photos as photo}
-				<button class="photo-btn" onclick={() => lightbox = photo}>
+			{#each artwork.photos as photo, i}
+				<button class="photo-btn" onclick={() => lightboxIndex = i}>
 					<img
 						src="/content/art/works/{artwork.id}/{photo}"
 						alt=""
@@ -35,10 +48,10 @@
 	</div>
 </div>
 
-{#if lightbox}
-	<div class="lightbox" onclick={() => lightbox = null} role="presentation">
-		<button class="lightbox-close" onclick={(e) => { e.stopPropagation(); lightbox = null; }}>✕</button>
-		<img src="/content/art/works/{artwork.id}/{lightbox}" alt="" class="lightbox-img" />
+{#if lightboxIndex !== null}
+	<div class="lightbox" onclick={() => lightboxIndex = null} role="presentation">
+		<button class="lightbox-close" onclick={(e) => { e.stopPropagation(); lightboxIndex = null; }}>✕</button>
+		<img src="/content/art/works/{artwork.id}/{artwork.photos[lightboxIndex]}" alt="" class="lightbox-img" />
 	</div>
 {/if}
 
@@ -119,7 +132,10 @@
 		font-size: 0.82rem;
 		line-height: 1.6;
 		margin: 0;
+		white-space: pre-line;
 	}
+
+	.description :global(a) { color: black; }
 
 	.work-link {
 		font-size: 0.82rem;

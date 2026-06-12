@@ -1,25 +1,40 @@
 <script lang="ts">
 	import { adventures } from '$lib/data/adventures';
 
-	let index = $state(0);
+	let index = $state(-1);
 
-	const adventure = $derived(adventures[index]);
+	const adventure = $derived(index >= 0 ? adventures[index] : null);
+
+	function onKeydown(e: KeyboardEvent) {
+		if (e.key === 'ArrowLeft' && index > -1) { index--; e.preventDefault(); }
+		else if (e.key === 'ArrowRight' && index < adventures.length - 1) { index++; e.preventDefault(); }
+	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <div class="adventures">
 	<div class="topbar">
-		<h2 class="title">{adventure.title}</h2>
-		<span class="date">{adventure.date}</span>
+		{#if adventure}
+			<h2 class="title">{adventure.title}</h2>
+			<span class="date">{adventure.date}</span>
+		{:else}
+			<h2 class="title">adventures</h2>
+		{/if}
 	</div>
 
 	<div class="content">
-		<img src={adventure.image} alt={adventure.title} class="photo" />
-		<p class="description">{adventure.description}</p>
+		{#if adventure}
+			<img src={adventure.image} alt={adventure.title} class="photo" />
+			<p class="description">{adventure.description}</p>
+		{:else}
+			<p class="cover-text">these are the adventures i've gone on</p>
+		{/if}
 	</div>
 
 	<div class="nav">
-		<button class="nav-btn" onclick={() => index--} disabled={index === 0}>← prev</button>
-		<span class="counter">{index + 1} / {adventures.length}</span>
+		<button class="nav-btn" onclick={() => index--} disabled={index === -1}>← prev</button>
+		<span class="counter">{index === -1 ? '✦' : `${index + 1} / ${adventures.length}`}</span>
 		<button class="nav-btn" onclick={() => index++} disabled={index === adventures.length - 1}>next →</button>
 	</div>
 </div>
@@ -111,5 +126,11 @@
 	.counter {
 		font-size: 0.75rem;
 		opacity: 0.6;
+	}
+
+	.cover-text {
+		font-size: 1.1rem;
+		line-height: 1.65;
+		margin: 0;
 	}
 </style>

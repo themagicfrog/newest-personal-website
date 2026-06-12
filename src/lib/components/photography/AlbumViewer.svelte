@@ -3,8 +3,21 @@
 
 	let { album, onBack }: { album: Album; onBack: () => void } = $props();
 
-	let lightbox = $state<string | null>(null);
+	let lightboxIndex = $state<number | null>(null);
+	let galleryEl = $state<HTMLElement>();
+
+	function onKeydown(e: KeyboardEvent) {
+		if (lightboxIndex !== null) {
+			if (e.key === 'ArrowLeft' && lightboxIndex > 0) { lightboxIndex--; e.preventDefault(); }
+			else if (e.key === 'ArrowRight' && lightboxIndex < album.photos.length - 1) { lightboxIndex++; e.preventDefault(); }
+		} else {
+			if (e.key === 'ArrowDown') { galleryEl?.scrollBy({ top: 200, behavior: 'smooth' }); e.preventDefault(); }
+			else if (e.key === 'ArrowUp') { galleryEl?.scrollBy({ top: -200, behavior: 'smooth' }); e.preventDefault(); }
+		}
+	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 <div class="viewer">
 	<div class="topbar">
@@ -13,9 +26,9 @@
 		<span class="count">{album.photos.length} photos</span>
 	</div>
 
-	<div class="gallery">
-		{#each album.photos as photo}
-			<button class="thumb-btn" onclick={() => (lightbox = photo)}>
+	<div class="gallery" bind:this={galleryEl}>
+		{#each album.photos as photo, i}
+			<button class="thumb-btn" onclick={() => (lightboxIndex = i)}>
 				<img
 					src="/content/photography/{album.id}/{photo}"
 					alt=""
@@ -28,10 +41,10 @@
 	</div>
 </div>
 
-{#if lightbox}
-	<div class="lightbox" onclick={() => (lightbox = null)} role="presentation">
-		<button class="lightbox-close" onclick={(e) => { e.stopPropagation(); lightbox = null; }}>✕</button>
-		<img src="/content/photography/{album.id}/{lightbox}" alt="" class="lightbox-img" />
+{#if lightboxIndex !== null}
+	<div class="lightbox" onclick={() => (lightboxIndex = null)} role="presentation">
+		<button class="lightbox-close" onclick={(e) => { e.stopPropagation(); lightboxIndex = null; }}>✕</button>
+		<img src="/content/photography/{album.id}/{album.photos[lightboxIndex]}" alt="" class="lightbox-img" />
 	</div>
 {/if}
 

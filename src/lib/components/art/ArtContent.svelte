@@ -6,13 +6,21 @@
 	let { onWorkOpen }: { onWorkOpen: (open: boolean) => void } = $props();
 
 	let selected = $state<Artwork | null>(null);
+	let galleryEl = $state<HTMLElement>();
+
+	function onKeydown(e: KeyboardEvent) {
+		if (selected) return;
+		if (e.key === 'ArrowDown') { galleryEl?.scrollBy({ top: 200, behavior: 'smooth' }); e.preventDefault(); }
+		else if (e.key === 'ArrowUp') { galleryEl?.scrollBy({ top: -200, behavior: 'smooth' }); e.preventDefault(); }
+	}
 </script>
+
+<svelte:window onkeydown={onKeydown} />
 
 {#if selected}
 	<ArtViewer artwork={selected} onBack={() => { selected = null; onWorkOpen(false); }} />
 {:else}
-	<div class="gallery">
-		<h2 class="gallery-heading">works</h2>
+	<div class="gallery" bind:this={galleryEl}>
 		<div class="grid">
 			{#each artworks as work}
 				<button class="work-btn" onclick={() => { selected = work; onWorkOpen(true); }}>
@@ -36,14 +44,7 @@
 		gap: 0.75rem;
 		height: 100%;
 		overflow-y: auto;
-	}
-
-	.gallery-heading {
-		font-size: 1rem;
-		margin: 0;
-		border-bottom: 1px solid black;
-		padding-bottom: 0.4rem;
-		flex-shrink: 0;
+		padding-top: 1.25rem;
 	}
 
 	.grid {

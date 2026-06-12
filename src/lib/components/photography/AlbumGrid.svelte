@@ -2,9 +2,18 @@
 	import { albums, type Album } from '$lib/data/albums';
 
 	let { onSelect }: { onSelect: (album: Album) => void } = $props();
+
+	let gridEl = $state<HTMLElement>();
+
+	function onKeydown(e: KeyboardEvent) {
+		if (e.key === 'ArrowDown') { gridEl?.scrollBy({ top: 200, behavior: 'smooth' }); e.preventDefault(); }
+		else if (e.key === 'ArrowUp') { gridEl?.scrollBy({ top: -200, behavior: 'smooth' }); e.preventDefault(); }
+	}
 </script>
 
-<div class="grid">
+<svelte:window onkeydown={onKeydown} />
+
+<div class="grid" bind:this={gridEl}>
 	{#each albums as album}
 		<button class="album" onclick={() => onSelect(album)}>
 			<div class="cover">
@@ -39,8 +48,8 @@
 	}
 
 	.cover {
-		width: 10vw;
-		height: 10vw;
+		width: 20vw;
+		height: 20vw;
 		border: 2px solid black;
 		overflow: hidden;
 	}
