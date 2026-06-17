@@ -26,15 +26,11 @@
 
 <style>
 	.grid {
-		display: flex;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
 		gap: 2rem;
-		align-items: flex-start;
-		justify-content: center;
 		padding: 2rem;
-		flex-wrap: wrap;
 		width: 100%;
-		height: 100%;
-		overflow-y: auto;
 	}
 
 	.album {
@@ -48,8 +44,8 @@
 	}
 
 	.cover {
-		width: 20vw;
-		height: 20vw;
+		width: 100%;
+		aspect-ratio: 1;
 		border: 2px solid black;
 		overflow: hidden;
 	}

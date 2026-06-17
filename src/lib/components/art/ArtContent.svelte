@@ -1,12 +1,19 @@
 <script lang="ts">
+	import { replaceState } from '$app/navigation';
+	import { untrack } from 'svelte';
 	import ArtViewer from './ArtViewer.svelte';
-	import { artworks } from '$lib/data/artworks';
-	import type { Artwork } from '$lib/data/artworks';
+	import { artworks, type Artwork } from '$lib/data/artworks';
 
-	let { onWorkOpen }: { onWorkOpen: (open: boolean) => void } = $props();
+	let { onWorkOpen, initialWorkId = '' }: { onWorkOpen: (open: boolean) => void; initialWorkId?: string } = $props();
 
-	let selected = $state<Artwork | null>(null);
+	const initial = untrack(() => initialWorkId ? artworks.find(w => w.id === initialWorkId) ?? null : null);
+	let selected = $state<Artwork | null>(initial);
 	let galleryEl = $state<HTMLElement>();
+
+	$effect(() => {
+		onWorkOpen(selected !== null);
+		replaceState(selected ? `/art/${selected.id}` : '/art', { openWindow: 'art' });
+	});
 
 	function onKeydown(e: KeyboardEvent) {
 		if (selected) return;
@@ -18,12 +25,12 @@
 <svelte:window onkeydown={onKeydown} />
 
 {#if selected}
-	<ArtViewer artwork={selected} onBack={() => { selected = null; onWorkOpen(false); }} />
+	<ArtViewer artwork={selected} onBack={() => { selected = null; }} />
 {:else}
 	<div class="gallery" bind:this={galleryEl}>
 		<div class="grid">
 			{#each artworks as work}
-				<button class="work-btn" onclick={() => { selected = work; onWorkOpen(true); }}>
+				<button class="work-btn" onclick={() => { selected = work; }}>
 					<img
 						src="/content/art/works/{work.id}/{work.thumbnail}"
 						alt={work.title}
@@ -42,8 +49,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
-		height: 100%;
-		overflow-y: auto;
 		padding-top: 1.25rem;
 	}
 

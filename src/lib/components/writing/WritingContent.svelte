@@ -3,112 +3,103 @@
 
 	const { onclose }: { onclose: () => void } = $props();
 
-	let scrollEl = $state<HTMLElement>();
+	const spreads = Array.from({ length: Math.ceil(pieces.length / 2) }, (_, i) => pieces.slice(i * 2, i * 2 + 2));
+
+	let spreadIndex = $state(0);
+	const spread = $derived(spreads[spreadIndex]);
 
 	function onKeydown(e: KeyboardEvent) {
-		if (!scrollEl) return;
-		if (e.key === 'ArrowLeft') { scrollEl.scrollBy({ left: -400, behavior: 'smooth' }); e.preventDefault(); }
-		else if (e.key === 'ArrowRight') { scrollEl.scrollBy({ left: 400, behavior: 'smooth' }); e.preventDefault(); }
-	}
-
-	function hscroll(el: HTMLElement) {
-		function onwheel(e: WheelEvent) {
-			if (!el.contains(e.target as Node)) return;
-			let delta = e.deltaY;
-			if (e.deltaMode === 1) delta *= 30;
-			if (e.deltaMode === 2) delta *= 300;
-			el.scrollLeft += delta;
-			e.preventDefault();
-		}
-		window.addEventListener('wheel', onwheel, { passive: false });
-		return { destroy() { window.removeEventListener('wheel', onwheel); } };
+		if (e.key === 'ArrowLeft' && spreadIndex > 0) { spreadIndex--; e.preventDefault(); }
+		else if (e.key === 'ArrowRight' && spreadIndex < spreads.length - 1) { spreadIndex++; e.preventDefault(); }
 	}
 </script>
 
 <svelte:window onkeydown={onKeydown} />
 
-<div class="writing-scroll" use:hscroll bind:this={scrollEl}>
-	<button class="back-btn" onclick={onclose}>back</button>
-	<div class="panel intro-panel">
-		<div class="intro-text">
-			<h1>writing</h1>
-			<p>I enjoy writing short stories, especially sci-fi and mystery.</p>
-		</div>
+<div class="writing">
+	<div class="nav">
+		<button class="nav-btn" onclick={onclose}>back</button>
+		<button class="nav-btn" onclick={() => spreadIndex--} disabled={spreadIndex === 0}>← prev</button>
+		<button class="nav-btn" onclick={() => spreadIndex++} disabled={spreadIndex === spreads.length - 1}>next →</button>
 	</div>
 
-	{#each pieces as piece}
-		<div class="panel piece-panel">
-			<div class="piece-header">
-				<a href={piece.link} target="_blank" rel="noopener" class="piece-title">{piece.title}</a>
-				<span class="piece-date">{piece.date}</span>
+	<div class="spread">
+		{#each spread as piece}
+			<div class="page">
+				<div class="piece-header">
+					<a href={piece.link} target="_blank" rel="noopener" class="piece-title">{piece.title}</a>
+					<span class="piece-date">{piece.date}</span>
+				</div>
+				{#each piece.awards as award}
+					<p class="piece-award">{@html award}</p>
+				{/each}
+				<p class="piece-excerpt">{piece.excerpt}</p>
 			</div>
-			{#each piece.awards as award}
-				<span class="piece-award">{@html award}</span>
-			{/each}
-			<p class="piece-excerpt">{piece.excerpt}</p>
-		</div>
-	{/each}
+		{/each}
+		{#if spread.length < 2}
+			<div class="page page--empty"></div>
+		{/if}
+	</div>
+
+	<span class="page-number">{spreadIndex + 1} / {spreads.length}</span>
 </div>
 
 <style>
-	.writing-scroll {
-		display: flex;
-		flex-direction: row;
-		overflow-x: auto;
-		overflow-y: hidden;
-		height: 100%;
-	}
-
-	.panel {
-		min-width: 50%;
-		max-width: 50%;
-		flex-shrink: 0;
-		height: 100%;
+	.writing {
+		position: relative;
 		display: flex;
 		flex-direction: column;
-		padding: 2.5rem 2rem;
-		overflow-wrap: break-word;
-		word-break: break-word;
+		height: 100%;
+		overflow: hidden;
 	}
 
-	.intro-panel {
-		justify-content: center;
-		gap: 0.75rem;
+	.nav {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 1.5rem 0.75rem 0.25rem;
 	}
 
-	.back-btn {
-		position: fixed;
-		top: 1.5rem;
-		left: 1.5rem;
-		z-index: 10;
+	.nav-btn {
 		background: none;
 		border: 1px solid black;
-		padding: 0.3rem 0.8rem;
+		padding: 0.2rem 0.6rem;
 		cursor: pointer;
-		font-size: 0.85rem;
+		font-size: 0.78rem;
 	}
 
-	.back-btn:hover {
+	.nav-btn:hover:not(:disabled) {
 		background: black;
 		color: white;
 	}
 
-	.intro-text {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.5rem;
-		text-align: center;
+	.nav-btn:disabled {
+		opacity: 0.3;
+		cursor: default;
 	}
 
-	h1 { font-size: 1.8rem; }
+.spread {
+		flex: 1;
+		display: flex;
+		min-height: 0;
+	}
 
-	p { font-size: 0.95rem; }
+	.page {
+		flex: 1;
+		padding: 0.75rem 2.5rem 2rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		overflow-y: auto;
+	}
 
-	.piece-panel {
-		justify-content: center;
-		gap: 0.5rem;
-		border-left: 2px solid black;
+	.page + .page {
+		border-left: 1px solid rgba(0,0,0,0.15);
+	}
+
+	.page--empty {
+		background: rgba(0,0,0,0.02);
 	}
 
 	.piece-header {
@@ -128,21 +119,31 @@
 	.piece-title:hover { text-decoration: underline; }
 
 	.piece-date {
-		font-size: 0.8rem;
+		font-size: 0.78rem;
+		color: #666;
 		white-space: nowrap;
-		color: #555;
 	}
 
 	.piece-award {
-		font-size: 0.78rem;
+		font-size: 0.75rem;
 		font-style: italic;
+		margin: 0;
+		opacity: 0.7;
 	}
 
 	.piece-award :global(a) { color: black; }
 
+	.page-number {
+		position: absolute;
+		bottom: 0.75rem;
+		right: 1rem;
+		font-size: 0.65rem;
+		opacity: 0.4;
+	}
+
 	.piece-excerpt {
 		font-size: 0.85rem;
-		margin: 0.25rem 0 0;
-		line-height: 1.5;
+		line-height: 1.65;
+		margin: 0;
 	}
 </style>

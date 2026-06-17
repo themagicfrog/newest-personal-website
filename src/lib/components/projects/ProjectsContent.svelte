@@ -1,12 +1,19 @@
 <script lang="ts">
+	import { replaceState } from '$app/navigation';
+	import { untrack } from 'svelte';
 	import ProjectViewer from './ProjectViewer.svelte';
-	import { projects } from '$lib/data/projects';
-	import type { Project } from '$lib/data/projects';
+	import { projects, type Project } from '$lib/data/projects';
 
-	let { onProjectOpen }: { onProjectOpen: (open: boolean) => void } = $props();
+	let { onProjectOpen, initialProjectId = '' }: { onProjectOpen: (open: boolean) => void; initialProjectId?: string } = $props();
 
-	let selected = $state<Project | null>(null);
+	const initial = untrack(() => initialProjectId ? projects.find(p => p.id === initialProjectId) ?? null : null);
+	let selected = $state<Project | null>(initial);
 	let galleryEl = $state<HTMLElement>();
+
+	$effect(() => {
+		onProjectOpen(selected !== null);
+		replaceState(selected ? `/projects/${selected.id}` : '/projects', { openWindow: 'projects' });
+	});
 
 	function onKeydown(e: KeyboardEvent) {
 		if (selected) return;
@@ -18,12 +25,12 @@
 <svelte:window onkeydown={onKeydown} />
 
 {#if selected}
-	<ProjectViewer project={selected} onBack={() => { selected = null; onProjectOpen(false); }} />
+	<ProjectViewer project={selected} onBack={() => { selected = null; }} />
 {:else}
 	<div class="gallery" bind:this={galleryEl}>
 		<div class="grid">
 			{#each projects as project}
-				<button class="project-btn" onclick={() => { selected = project; onProjectOpen(true); }}>
+				<button class="project-btn" onclick={() => { selected = project; }}>
 					<img
 						src="/content/projects/{project.id}/{project.thumbnail}"
 						alt={project.title}
@@ -45,8 +52,6 @@
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
-		height: 100%;
-		overflow-y: auto;
 	}
 
 	.grid {

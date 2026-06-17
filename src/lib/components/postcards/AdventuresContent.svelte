@@ -1,9 +1,19 @@
 <script lang="ts">
+	import { replaceState } from '$app/navigation';
+	import { untrack } from 'svelte';
 	import { adventures } from '$lib/data/adventures';
 
-	let index = $state(-1);
+	let { onclose, initialAdventureId = '' }: { onclose: () => void; initialAdventureId?: string } = $props();
+
+	const initialIndex = untrack(() => initialAdventureId ? adventures.findIndex(a => a.id === initialAdventureId) : -1);
+	let index = $state(initialIndex);
 
 	const adventure = $derived(index >= 0 ? adventures[index] : null);
+
+	$effect(() => {
+		const id = index >= 0 ? adventures[index].id : null;
+		replaceState(id ? `/adventures/${id}` : '/adventures', { openWindow: 'adventures' });
+	});
 
 	function onKeydown(e: KeyboardEvent) {
 		if (e.key === 'ArrowLeft' && index > -1) { index--; e.preventDefault(); }
@@ -14,6 +24,13 @@
 <svelte:window onkeydown={onKeydown} />
 
 <div class="adventures">
+	<div class="nav">
+		<button class="nav-btn" onclick={onclose}>back</button>
+		<button class="nav-btn" onclick={() => index--} disabled={index === -1}>← prev</button>
+		<span class="counter">{index === -1 ? '✦' : `${index + 1} / ${adventures.length}`}</span>
+		<button class="nav-btn" onclick={() => index++} disabled={index === adventures.length - 1}>next →</button>
+	</div>
+
 	<div class="topbar">
 		{#if adventure}
 			<h2 class="title">{adventure.title}</h2>
@@ -30,12 +47,6 @@
 		{:else}
 			<p class="cover-text">these are the adventures i've gone on</p>
 		{/if}
-	</div>
-
-	<div class="nav">
-		<button class="nav-btn" onclick={() => index--} disabled={index === -1}>← prev</button>
-		<span class="counter">{index === -1 ? '✦' : `${index + 1} / ${adventures.length}`}</span>
-		<button class="nav-btn" onclick={() => index++} disabled={index === adventures.length - 1}>next →</button>
 	</div>
 </div>
 
@@ -102,7 +113,7 @@
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.4rem 0.75rem;
-		border-top: 1px solid rgba(0,0,0,0.2);
+		border-bottom: 1px solid rgba(0,0,0,0.2);
 	}
 
 	.nav-btn {
